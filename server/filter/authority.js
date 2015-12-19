@@ -8,7 +8,6 @@ var underscore = require('underscore');
 var __string = require('underscore.string');
 var util = require('util');
 var logger = require('../log/logFactory').getLogger();
-var userService = require('../service/userService');
 //映射模型
 var cmsurls = new Map();
 //哪些url不需要验证

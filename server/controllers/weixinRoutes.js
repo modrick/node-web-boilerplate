@@ -4,6 +4,7 @@
  */
 var constants = require('../helpers/constants');
 var weixinService = require('../service/weixinService');
+var fs = require('fs');
 var mongodaDao = require('../storage/mongodbDao');
 var commonUtil = require('../helpers/commonUtil');
 var Q = require('q');
@@ -13,7 +14,7 @@ var initConfig = {
 	appId: constants.WeixinConstants.APPID,
 	mchId: constants.WeixinConstants.MCHID,
 	notifyUrl: constants.WeixinConstants.NOTIFYURL,
-	pfx: fs.readFileSync(constants.WeixinConstants.PFX)
+	// pfx: fs.readFileSync(constants.WeixinConstants.PFX)
 };
 
 
