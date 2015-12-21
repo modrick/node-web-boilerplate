@@ -19,7 +19,8 @@ app.use(express.static(__dirname + '/public')); //方便开发，暂时引入
 // App 全局配置
 app.use(cookieParser());
 // app.use(authority.check);
-// app.use(authority.forDeveloper);
+//设置跨域
+// app.use(authority.crossDomain);
 app.use(bodyParser.json({
     limit: '2mb'
 }));

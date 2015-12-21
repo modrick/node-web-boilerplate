@@ -19,6 +19,16 @@ var source = 'Html5Plus/1.0';
 
 var filter = {
 
+     crossDomain: function(req, res, next) {
+        res.append("Access-Control-Allow-Origin", "*");
+        res.append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        res.append('Access-Control-Allow-Credentials', 'true');
+        res.append("Access-Control-Allow-Methods", "*");
+        res.append("X-Powered-By", "3.2.1");
+        res.append("Content-Type", "application/json;charset=utf-8");
+        next();
+    },
+
     //后台验证登陆权限
     checkCms: function (req, res, next) {
         var path = req.path;

@@ -9,60 +9,6 @@ var Q = require('q');
 
 var utils = {
 
-    /** 转换金额 */
-    getFormattedAmount: function (amount, currency) {
-        if (isBlank(amount)) {
-            return;
-        }
-        if (isBlank(currency)) currency = '';
-        switch (currency) {
-            case 'CNY':
-                amount = formatAmount(amount, 2);
-                amount = '人民币 ¥' + amount;
-                break;
-            case 'USD':
-                amount = formatAmount(amount, 2);
-                amount = 'USD $' + amount;
-                break;
-        }
-        return amount;
-    },
-
-    getFormattedAmount2: function (amount, currency) {
-        if (isBlank(amount)) {
-            return;
-        }
-        if (isBlank(currency)) currency = '';
-        switch (currency) {
-            case 'CNY':
-                amount = formatAmount(amount, 2);
-                amount = '<span style="font-size: 8px">人民币</span> ¥' + amount;
-                break;
-            case 'USD':
-                amount = formatAmount(amount, 2);
-                amount = '<span style="font-size: 8px">USD</span> $' + amount;
-                break;
-        }
-        return amount;
-    },
-
-    /** 格式化金额 */
-    formatAmount: function (s, n) {
-        n = n > 0 && n <= 20 ? n : 2;
-        s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";
-        var l = s.split(".")[0].split("").reverse(), r = s.split(".")[1];
-        t = "";
-        for (i = 0; i < l.length; i++) {
-            t += l[i] + ((i + 1) % 3 == 0 && (i + 1) != l.length ? "," : "");
-        }
-        return t.split("").reverse().join("") + "." + r;
-    },
-
-    /** 还原金额的数字形式 */
-    revertAmount: function (s) {
-        return parseFloat(s.replace(/[^\d\.-]/g, ""));
-    },
-
     getPastDay: function (createDate) {
         if (!createDate) {
             return "";
@@ -243,17 +189,7 @@ var utils = {
         }
         return contentType;
     },
-
-    //Hades: 跨域处理
-    setResponse: function (res) {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader("Access-Control-Allow-Methods", "*");
-        res.setHeader("X-Powered-By", "3.2.1");
-        res.setHeader("Content-Type", "application/json;charset=utf-8");
-    },
-
+    
     //JS中继承的实现--start
     _isObject: function (o) {
         return Object.prototype.toString.call(o) === '[object Object]';
