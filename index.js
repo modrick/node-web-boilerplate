@@ -13,7 +13,7 @@ var weixinService = require('./server/service/weixinService');
 var constants = require('./server/helpers/constants');
 var authority = require('./server/filter/authority');
 var errorhandler = require('errorhandler');
-//var colors = require('colors/safe');
+var colors = require('colors');
 // app.use(authority.forDeveloper);
 app.use(express.static(__dirname + '/public')); //方便开发，暂时引入
 // App 全局配置
@@ -44,9 +44,9 @@ function errorHandle(err, req, res, next) {
     if (err) {
         if (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'PRODUCTION') {
             if (req.method == "post") {
-                logger.error(req.method + ':' + req.url + ":" + JSON.stringify(req.body));
+                logger.error("method:" + req.method + ',url:' + req.url + ",params:" + JSON.stringify(req.body) + ",error:" + err);
             } else {
-                logger.error(req.method + ':' + req.url + ":" + JSON.stringify(req.query || req.params));
+                logger.error("method:" + req.method + ',url:' + req.url + ",params:" + JSON.stringify(req.query || req.params) + ",error:" + err);
             }
             res.json({
                 code: 500
@@ -55,13 +55,13 @@ function errorHandle(err, req, res, next) {
             //开发环境
             errorNotification(err, req);
         }
-    }else{
+    } else {
         next();
     }
 }
 
 function errorNotification(err, req) {
-    var stack = err.stack
+    var stack = err.stackcolors
     var str;
     if (stack) {
         str = String(stack)
