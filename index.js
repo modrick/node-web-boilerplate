@@ -40,34 +40,35 @@ appServer.start();
 
 //异常处理
 function errorHandle(err, req, res, next) {
-    //正式生产环境
-    if (err) {
-        if (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'PRODUCTION') {
-            if (req.method == "post") {
-                logger.error("method:" + req.method + ',url:' + req.url + ",params:" + JSON.stringify(req.body) + ",error:" + err);
-            } else {
-                logger.error("method:" + req.method + ',url:' + req.url + ",params:" + JSON.stringify(req.query || req.params) + ",error:" + err);
-            }
-            res.json({
-                code: 500
-            })
-        } else {
-            //开发环境
-            errorNotification(err, req);
-        }
-    } else {
-        next();
-    }
-}
-
-function errorNotification(err, req) {
-    var stack = err.stackcolors
+    var stack = err.stack
     var str;
     if (stack) {
         str = String(stack)
     } else {
         str = String(err)
     }
+    //正式生产环境
+    if (err) {
+        if (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'PRODUCTION') {
+            if (req.method == "post") {
+                logger.error("method:" + req.method + ',url:' + req.url + ",params:" + JSON.stringify(req.body) + ",error:" + str);
+            } else {
+                logger.error("method:" + req.method + ',url:' + req.url + ",params:" + JSON.stringify(req.query || req.params) + ",error:" + str);
+            }
+            res.json({
+                code: 500,
+                data:err
+            })
+        } else {
+            //开发环境
+            errorNotification(str, req);
+        }
+    } else {
+        next();
+    }
+}
+
+function errorNotification(str, req) {
     var title = req.method + ':' + req.url;
     console.info(colors.red('Error info is, "%s" .'), title);
     console.info(colors.green('Error stack is, "%s" .'), str);
