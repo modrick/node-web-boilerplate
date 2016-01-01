@@ -393,5 +393,5 @@ var redisClient = {
 module.exports = redisClient;
 
 client.on("error", function(err) {
-    console.log("Error :" + err);
+    logger.error("Error :" + err);
 });
