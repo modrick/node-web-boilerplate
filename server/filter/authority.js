@@ -19,6 +19,7 @@ var source = 'Html5Plus/1.0';
 
 var filter = {
 
+     //允许跨域请求设置
      crossDomain: function(req, res, next) {
         res.append("Access-Control-Allow-Origin", "*");
         res.append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -29,8 +30,8 @@ var filter = {
         next();
     },
 
-    //后台验证登陆权限
-    checkCms: function (req, res, next) {
+    //权限验证
+    check: function (req, res, next) {
         var path = req.path;
         //请求的地址如果不在URLS里面，则表示需要验证权限，不然就直接通过；
         if (cmsurls.get(path)) {

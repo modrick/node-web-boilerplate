@@ -6,7 +6,6 @@
 var mongodbDao = require('../storage/mongodbDao');
 var redisDao = require('../storage/redisDao');
 var ObjectID = require('mongodb').ObjectID;
-var logger = require('../log/logFactory').getLogger();
 var commonUtil = require('../helpers/commonUtil');
 var Q = require('q');
 

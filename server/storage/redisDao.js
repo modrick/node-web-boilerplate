@@ -1,5 +1,5 @@
 /**
- * Created by tangnian on 14-4-7.
+ * Created by tangnian on 15-4-7.
  */
 var config = require('../../config');
 var redis = require("redis");
