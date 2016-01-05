@@ -1,6 +1,5 @@
-/**
- * Created by tangnian on 14/11/10.
- */
+'use strict'
+
 var Server = require('./server/server');
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -40,10 +39,26 @@ app.use(errorHandle);
 var appServer = new Server(app);
 appServer.start();
 
+//捕获链式无法捕获的异常
+process.on('uncaughtException', function(err) {
+    const title = String(err);
+    const content = String(err.stack);
+    if (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'PRODUCTION') {
+        logger.error('error:' + content);
+    } else {
+        console.info(colors.red('Error info is, "%s" .'), title);
+        console.info(colors.green('Error stack is, "%s" .'), content);
+        require('node-notifier').notify({
+            title: title,
+            message: content
+        })
+    }
+})
+
 //异常处理
 function errorHandle(err, req, res, next) {
-    var stack = err.stack
-    var str;
+    const stack = err.stack
+    let str;
     if (stack) {
         str = String(stack)
     } else {
@@ -71,7 +86,7 @@ function errorHandle(err, req, res, next) {
 }
 
 function errorNotification(str, req) {
-    var title = req.method + ':' + req.url;
+    const title = req.method + ':' + req.url;
     console.info(colors.red('Error info is, "%s" .'), title);
     console.info(colors.green('Error stack is, "%s" .'), str);
     require('node-notifier').notify({
