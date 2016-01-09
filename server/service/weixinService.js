@@ -22,6 +22,7 @@ var initConfig = {
         // pfx: fs.readFileSync(constants.WeixinConstants.PFX)
 };
 var payment = new Payment(initConfig);
+var discountService = require('./discountService');
 
 // 微信接口类
 class WeixinService {
@@ -100,7 +101,8 @@ class WeixinService {
         }, function(error, response, body) {
             if (!error && response.statusCode == 200) {
                 var json = JSON.parse(body);
-                redisDao.hset("access_token", "access_token_id", json.access_token);
+                redisDao.set(appid + "access_token", json.access_token);
+                redisDao.expire(appid + "access_token", 7000); // 默认是7200的有效期
                 //调用微信卡券接口，获取api_ticket
                 request.get({
                     url: 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=' + json.access_token + '&type=jsapi',
@@ -154,18 +156,26 @@ class WeixinService {
         var deferred = Q.defer();
         var appid = constants.WeixinConstants.APPID;
         var secret = constants.WeixinConstants.APPSECRET;
-        //获取access_token
-        request.get({
-            url: 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + appid + '&secret=' + secret,
-            formData: {}
-        }, function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var _data = JSON.parse(body);
-                deferred.resolve(_data);
+        redisDao.get(appid + "access_token").then(function(access_token) {
+            if (access_token) {
+                deferred.resolve(access_token);
             } else {
-                deferred.reject(new Error(err));
+                //获取access_token
+                request.get({
+                    url: 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + appid + '&secret=' + secret,
+                    formData: {}
+                }, function(error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        var _data = JSON.parse(body);
+                        redisDao.set(appid + "access_token", _data.access_token);
+                        redisDao.expire(appid + "access_token", 7000); // 默认是7200的有效期
+                        deferred.resolve(_data.access_token);
+                    } else {
+                        deferred.reject(new Error(err));
+                    }
+                });
             }
-        });
+        })
         return deferred.promise;
     }
 
@@ -271,17 +281,14 @@ class WeixinService {
     getWechatUserInfo(openId) {
         var defferred = Q.defer();
         this.getAccessToken().then(function(data) {
-            var access_token = data.access_token
+            var access_token = data;
             request.get({
                 url: 'https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN',
                 formData: {}
             }, function(error, response, body) {
                 if (!error && response.statusCode == 200) {
                     var wechatUserInfo = JSON.parse(body);
-                    defferred.resolve({
-                        code: 100,
-                        wechatUserInfo: wechatUserInfo
-                    });
+                    defferred.resolve(wechatUserInfo);
                 } else {
                     defferred.resolve({
                         code: 500,
@@ -349,130 +356,149 @@ class WeixinService {
             var replyStr = "欢迎来到xx";
             //关注时，获取用户信息
             Q(1).then(function(data) {
-                var deferred = Q.defer();
-                var appid = constants.WeixinConstants.APPID;
-                var secret = constants.WeixinConstants.APPSECRET;
-                //获取access_token
-                request.get({
-                    url: 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + appid + '&secret=' + secret,
-                    formData: {}
-                }, function(error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        var _data = JSON.parse(body);
-                        deferred.resolve(_data);
-                    } else {
-                        deferred.reject(new Error(err));
-                    }
-                });
-                return deferred.promise;
-            }).then(function(data) {
-                var defferred = Q.defer();
-                var access_token = data.access_token
-                request.get({
-                    url: 'https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN',
-                    formData: {}
-                }, function(error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        var wechatUserInfo = JSON.parse(body);
-                        defferred.resolve({
-                            code: 100,
-                            wechatUserInfo: wechatUserInfo
-                        });
-                    } else {
-                        defferred.resolve({
-                            code: 500,
-                            message: '网络请求失败'
-                        })
-                    }
-                });
-                return defferred.promise;
-            }).then(function(wechatUserResult) {
-                var wechatUserInfo = wechatUserResult.wechatUserInfo;
-                var userInfo = {
-                    subscribe: wechatUserInfo.subscribe,
-                    openId: wechatUserInfo.openid,
-                    nickname: wechatUserInfo.nickname,
-                    sex: wechatUserInfo.sex,
-                    wechatCity: wechatUserInfo.city,
-                    country: wechatUserInfo.country,
-                    province: wechatUserInfo.province,
-                    language: wechatUserInfo.language,
-                    headimgurl: wechatUserInfo.headimgurl,
-                    subscribe_time: wechatUserInfo.subscribe_time,
-                    remark: wechatUserInfo.remark,
-                    groupid: wechatUserInfo.groupid
-                }
-                mongodaDao.query('User', {
-                    openId: openId
+                    return getAccessToken();
                 }).then(function(data) {
-                    if (!data) {
-                        console.log("数据库操作错误");
-                    } else if (data.length == 0) {
-                        mongodaDao.save('User', userInfo).then(function(data) {
-                            if (!data) {
-                                logger.error("weixinService attentionWeixin:openid为" + openId + "数据库操作错误");
-                            } else {
-                                logger.info("weixinService attentionWeixin:openid为" + openId + "关注成功");
-                            }
-                            var openId = data.openId;
-                            var nickname = data.nickname;
-                            var phone = data.phone;
-                        }).catch(function(err) {
-                            logger.error(err);
-                        })
-                    } else if (data.length > 0) {
-                        mongodaDao.update('User', {
-                            openId: openId
-                        }, {
-                            subscribe: 1
-                        }).then(function(data) {
-                            if (!data) {
-                                logger.error("weixinService attentionWeixin:openid为" + openId + "数据库操作错误");
-                            } else {
-                                logger.info("weixinService attentionWeixin:openid为" + openId + "再次关注成功");
-                            }
-                        });
-                    }
-                });
-            });
-            res.reply(replyStr);
-            //取消关注事件
+                    var defferred = Q.defer();
+                    var access_token = data;
+                    request.get({
+                        url: 'https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN',
+                        formData: {}
+                    }, function(error, response, body) {
+                        if (!error && response.statusCode == 200) {
+                            var wechatUserInfo = JSON.parse(body);
+                            defferred.resolve({
+                                code: 100,
+                                wechatUserInfo: wechatUserInfo
+                            });
+                        } else {
+                            defferred.resolve({
+                                code: 500,
+                                message: '网络请求失败'
+                            })
+                        }
+                    });
+                    return defferred.promise;
+                }).then(function(wechatUserResult) {
+                    var wechatUserInfo = wechatUserResult.wechatUserInfo;
+                    var userInfo = {
+                            subscribe: wechatUserInfo.subscribe,
+                            openId: wechatUserInfo.openid,
+                            nickname: wechatUserInfo.nickname,
+                            sex: wechatUserInfo.sex,
+                            wechatCity: wechatUserInfo.city,
+                            country: wechatUserInfo.country,
+                            province: wechatUserInfo.province,
+                            language: wechatUserInfo.language,
+                            headimgurl: wechatUserInfo.headimgurl,
+                            subscribe_time: wechatUserInfo.subscribe_time,
+                            remark: wechatUserInfo.remark,
+                            groupid: wechatUserInfo.groupid,
+                            usertype: '0'
+                        }
+                        //不需要同步，直接推送
+                    mongodaDao.query('User', {
+                        openId: openId
+                    }).then(function(data) {
+                        if (data.length == 0) {
+                            return mongodaDao.save('User', userInfo).then(function(user) {
+                                logger.info("微信关注:openid为" + openId + "关注成功");
+                                // var openId = user.openId;
+                                // var nickname = user.nickname;
+                                // var phone = user.phone;
+                                //正式环境取消送优惠劵
+                                // return discountService.subscribeSendDiscount(openId, phone, nickname);
+                                return Q(false)
+                            })
+                        } else if (data.length > 0) {
+                            return mongodaDao.update('User', {
+                                openId: openId
+                            }, {
+                                subscribe: 1
+                            }).then(function(data) {
+                                logger.info("微信关注:openid为" + openId + "再次关注成功");
+                            })
+                        }
+                    }).catch(function(err) {
+                        logger.error("微信关注:openid为" + openId + "，错误为:" + JSON.stringify(err));
+                    });
+                    // res.reply(replyStr);
+                    res.reply([{
+                        title: '',
+                        description: '',
+                        picurl: '',
+                        url: ''
+                    }]);
+                }).catch(function(err) {
+                    logger.error("微信关注过程中出错：openid：" + openId + "，错误为:" + JSON.stringify(err));
+                    res.reply('err')
+                })
+                //取消关注事件
         } else if ((message.MsgType == 'event') && (message.Event == 'unsubscribe')) {
             mongodaDao.query('User', {
                 openId: openId
             }).then(function(data) {
-                if (!data) {
-                    logger.info("数据库操作错误");
-                } else if (data.length === 0) {
-                    logger.info('数据库操作有误，openI为：' + openId + '得用户取消关注时，数据库没有该用户的数据');
+                if (data.length === 0) {
+                    logger.info('openId为：' + openId + '的用户取消关注时，数据库没有该用户的数据');
                 } else if (data.length === 1) {
-                    mongodaDao.update('User', {
+                    var unsub = new Date();
+                    unsub.setHours(unsub.getHours() + 8);
+                    return mongodaDao.update('User', {
                         openId: openId
                     }, {
                         subscribe: 0,
-                        unsubscribe_time: new Date()
+                        unsubscribe_time: unsub
                     }).then(function(data) {
-                        if (!data) {
-                            logger.info("数据库操作错误");
-                        } else {
-                            logger.info("取消关注，更新数据库成功！");
-                        }
+                        logger.info('openId为：' + openId + '的用户取消关注成功。');
+                        res.reply('ok')
                     });
                 } else if (data.length > 1) {
                     logger.info("openId为:" + openId + "的用户取消关注时，数据库里存在多条用户信息");
+                    res.reply('ok')
                 }
+            }).catch(function(err) {
+                logger.error("微信关注:openid为" + openId + "，错误为:" + JSON.stringify(err));
+                res.reply('err')
             });
         } else if (message.MsgType == 'text') {
             var input = (message.Content || '').trim();
             if (input) {
-                simSimiService.send(input).then(function(data) {
-                    res.reply(data);
-                })
+                //机器人
+                // simSimiService.send(input).then(function(data) {
+                //     res.reply(data);
+                // })
             }
+
         }
 
     }
 
+}
+
+function getAccessToken() {
+    var deferred = Q.defer();
+    var appid = constants.WeixinConstants.APPID;
+    var secret = constants.WeixinConstants.APPSECRET;
+    redisDao.get(appid + "access_token").then(function(access_token) {
+        if (access_token) {
+            deferred.resolve(access_token);
+        } else {
+            //获取access_token
+            request.get({
+                url: 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + appid + '&secret=' + secret,
+                formData: {}
+            }, function(error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    var _data = JSON.parse(body);
+                    redisDao.set(appid + "access_token", _data.access_token);
+                    redisDao.expire(appid + "access_token", 7000); // 默认是7200的有效期
+                    deferred.resolve(_data.access_token);
+                } else {
+                    deferred.reject(new Error(err));
+                }
+            });
+        }
+    })
+    return deferred.promise;
 }
 
 module.exports = new WeixinService();
