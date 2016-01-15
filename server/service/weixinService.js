@@ -439,6 +439,7 @@ class WeixinService {
             }).then(function(data) {
                 if (data.length === 0) {
                     logger.info('openId为：' + openId + '的用户取消关注时，数据库没有该用户的数据');
+                     res.reply('ok')
                 } else if (data.length === 1) {
                     var unsub = new Date();
                     unsub.setHours(unsub.getHours() + 8);
@@ -450,7 +451,10 @@ class WeixinService {
                     }).then(function(data) {
                         logger.info('openId为：' + openId + '的用户取消关注成功。');
                         res.reply('ok')
-                    });
+                    }).catch(function(err){
+                        logger.error("微信关注过程中出错：openid：" + openId + "，错误为:" + JSON.stringify(err));
+                        res.reply('err');
+                    })
                 } else if (data.length > 1) {
                     logger.info("openId为:" + openId + "的用户取消关注时，数据库里存在多条用户信息");
                     res.reply('ok')
@@ -467,6 +471,8 @@ class WeixinService {
                 //     res.reply(data);
                 // })
             }
+            //防止没有响应给微信端的报警
+            res.send('success')
 
         }
 
