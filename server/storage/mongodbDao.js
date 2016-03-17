@@ -344,6 +344,39 @@ var MongoDbDao = {
         return deferred.promise;
     },
 
+    distinct: function(collection, field) {
+        var deferred = Q.defer();
+        try {
+            this._db.collection(collection).distinct(field, function(err, data) {
+                if (err) {
+                    deferred.reject(new Error(err));
+                } else {
+                    deferred.resolve(data);
+                }
+            });
+        } catch (err) {
+            deferred.reject(new Error(err));
+        }
+        return deferred.promise;
+    },
+
+    group: function(collection, keys, condition, initial, reduce){
+        var deferred = Q.defer();
+        try {
+            this._db.collection(collection).group(keys, condition, initial, reduce,function(err, data){
+                if(err){
+                    deferred.reject(new Error(err));
+                }else{
+                    deferred.resolve(data);
+                }
+            });
+        } catch (err) {
+            deferred.reject(new Error(err));
+        }
+
+        return deferred.promise;
+    }
+
     /**
      * 自增id 暂时弃用
      * @param  collection 类名
