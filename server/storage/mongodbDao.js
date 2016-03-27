@@ -8,7 +8,6 @@ var Server = require('mongodb').Server;
 var ReplSet = require('mongodb').ReplSet;
 var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
-var Q = require('q');
 var sprintf = require("sprintf-js").sprintf;
 var mongoClient = require('mongodb').MongoClient;
 //正式环境
@@ -61,27 +60,21 @@ var MongoDbDao = {
             var _len = data.length;
             for (var i = 0; i < _len; i++) {
                 data[i].createTime = currentTime;
-                data[i].isDeleted = false;
             }
         } else {
             data['createTime'] = currentTime;
-            data['isDeleted'] = false;
         }
-        var deferred = Q.defer();
-        this._db.collection(collection).insert(data, {
-            w: 1
-        }, function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas.ops[0]);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).insert(data, {
+                w: 1
+            }, function(err, datas) {
+                if (err) reject(err);
+                resolve(datas.ops[0]);
+            });
         });
-        return deferred.promise;
     },
 
     query: function(collection, selector, sort) {
-        var deferred = Q.defer();
         if (typeof(selector) == 'string') {
             selector = {
                 _id: ObjectID.createFromHexString(selector)
@@ -93,72 +86,58 @@ var MongoDbDao = {
             };
         }
         this.addDefaultCondition(selector);
-        this._db.collection(collection).find(selector).sort(sort).toArray(function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).find(selector).sort(sort).toArray(function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     queryAdv: function(collection, selector, projection, sort) {
-        var deferred = Q.defer();
         this.addDefaultCondition(selector);
-        this._db.collection(collection).find(selector, projection).sort(sort).toArray(function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).find(selector, projection).sort(sort).toArray(function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     findOne: function(collection, selector) {
-        var deferred = Q.defer();
         if (typeof(selector) == 'string') {
             selector = {
                 _id: ObjectID.createFromHexString(selector)
             };
         }
-        this._db.collection(collection).findOne(selector, function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).findOne(selector, function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     findBySort: function(collection, selector, sort, limit) {
-        var deferred = Q.defer();
-        this._db.collection(collection).find(selector).skip(0).limit(limit - 0).sort(sort).toArray(function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).find(selector).skip(0).limit(limit - 0).sort(sort).toArray(function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     pagingQuery: function(collection, selector, sort, start, limit) {
-        var deferred = Q.defer();
         this.addDefaultCondition(selector);
         var sort = sort ? sort : {
             createTime: -1
         };
-        this._db.collection(collection).find(selector).sort(sort).skip(start).limit(limit).toArray(function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).find(selector).sort(sort).skip(start).limit(limit).toArray(function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     /**
@@ -169,38 +148,32 @@ var MongoDbDao = {
      * @returns {*|promise}
      */
     findPagingData: function(collection, selector, pageRequest) {
-        var deferred = Q.defer();
         var me = this;
         me.addDefaultCondition(selector);
-        me.getCount(collection, selector).then(function(count) {
+        return me.getCount(collection, selector).then(function(count) {
             var start = parseInt(pageRequest.start);
             var limit = parseInt(pageRequest.limit);
-            me.pagingQuery(collection, selector, pageRequest.sort, start, limit).then(function(data) {
-                deferred.resolve({
-                    total: count,
-                    records: data
-                });
+            return me.pagingQuery(collection, selector, pageRequest.sort, start, limit);
+        }).then(function(data) {
+            Promise.resolve({
+                total: count,
+                records: data
             });
         }).catch(function(err) {
-            deferred.reject(new Error(err));
+            Promise.reject(new Error(err));
         });
-        return deferred.promise;
     },
 
     getCount: function(collection, selector) {
-        var deferred = Q.defer();
-        this._db.collection(collection).find(selector).count(function(err, count) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(count);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).find(selector).count(function(err, count) {
+                if (err) reject(err);
+                resolve(count);
+            });
         });
-        return deferred.promise;
     },
 
     update: function(collection, selector, newData) {
-        var deferred = Q.defer();
         var currentTime = this.getProcessedCurrentTime();
         if (typeof(selector) == 'string') {
             selector = {
@@ -208,23 +181,20 @@ var MongoDbDao = {
             };
         }
         newData['updateTime'] = currentTime;
-        this._db.collection(collection).update(selector, {
-            $set: newData
-        }, {
-            w: 1,
-            upsert: true
-        }, function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).update(selector, {
+                $set: newData
+            }, {
+                w: 1,
+                upsert: true
+            }, function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     updateAdv: function(collection, selector, updateObj) {
-        var deferred = Q.defer();
         var currentTime = this.getProcessedCurrentTime();
         if (typeof(selector) == 'string') {
             selector = {
@@ -238,56 +208,49 @@ var MongoDbDao = {
                 updateTime: currentTime
             };
         }
-        this._db.collection(collection).update(selector, updateObj, {
-            w: 1,
-            upsert: true
-        }, function(err, data) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(data);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).update(selector, updateObj, {
+                w: 1,
+                upsert: true
+            }, function(err, data) {
+                if (err) reject(err);
+                resolve(data);
+            });
         });
-        return deferred.promise;
     },
 
     updateBatch: function(collection, selector, newData) {
-        var deferred = Q.defer();
         var currentTime = this.getProcessedCurrentTime();
         newData['updateTime'] = currentTime;
-        this._db.collection(collection).update(selector, {
-            $set: newData
-        }, {
-            w: 1,
-            upsert: false,
-            multi: true
-        }, function(err, datas) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(datas);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).update(selector, {
+                $set: newData
+            }, {
+                w: 1,
+                upsert: false,
+                multi: true
+            }, function(err, datas) {
+                if (err) reject(err);
+                resolve(datas);
+            });
         });
-        return deferred.promise;
     },
 
     remove: function(collection, selector) {
-        var deferred = Q.defer();
         if (typeof(selector) == 'string') {
             selector = {
                 _id: ObjectID.createFromHexString(selector)
             };
         }
-        this._db.collection(collection).remove(selector, {
-            w: 1
-        }, function(err, data) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(data);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).remove(selector, {
+                w: 1
+            }, function(err, data) {
+                if (err) reject(err);
+                resolve(data);
+            });
         });
-        return deferred.promise;
+
     },
 
     /**
@@ -298,7 +261,6 @@ var MongoDbDao = {
      *  @param upsert:boolean 匹配的不存在，就创建并插入数据
      */
     findAndModify: function(collection, selector, newData, sort) {
-        var deferred = Q.defer();
         var sort = sort ? sort : {
             createTime: -1
         };
@@ -307,25 +269,22 @@ var MongoDbDao = {
                 _id: ObjectID.createFromHexString(selector)
             };
         }
-        this._db.collection(collection).findAndModify(selector, sort, newData, {
-            w: 1,
-            new: true,
-            upsert: true
-        }, function(err, data) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(data);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).findAndModify(selector, sort, newData, {
+                w: 1,
+                new: true,
+                upsert: true
+            }, function(err, data) {
+                if (err) reject(err);
+                resolve(data);
+            });
         });
-        return deferred.promise;
     },
 
     /**
      * 查询并删除,该操作为一个原子操作
      */
     findAndRemove: function(collection, selector, sort) {
-        var deferred = Q.defer();
         var sort = sort ? sort : {
             createTime: -1
         };
@@ -334,68 +293,31 @@ var MongoDbDao = {
                 _id: ObjectID.createFromHexString(selector)
             };
         }
-        this._db.collection(collection).findAndRemove(selector, sort, function(err, data) {
-            if (err) {
-                deferred.reject(new Error(err));
-            } else {
-                deferred.resolve(data);
-            }
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).findAndRemove(selector, sort, function(err, data) {
+                if (err) reject(err);
+                resolve(data);
+            });
         });
-        return deferred.promise;
     },
 
     distinct: function(collection, field) {
-        var deferred = Q.defer();
-        try {
+        return new Promise(function(resolve, reject) {
             this._db.collection(collection).distinct(field, function(err, data) {
-                if (err) {
-                    deferred.reject(new Error(err));
-                } else {
-                    deferred.resolve(data);
-                }
+                if (err) reject(err);
+                resolve(data);
             });
-        } catch (err) {
-            deferred.reject(new Error(err));
-        }
-        return deferred.promise;
-    },
-
-    group: function(collection, keys, condition, initial, reduce){
-        var deferred = Q.defer();
-        try {
-            this._db.collection(collection).group(keys, condition, initial, reduce,function(err, data){
-                if(err){
-                    deferred.reject(new Error(err));
-                }else{
-                    deferred.resolve(data);
-                }
-            });
-        } catch (err) {
-            deferred.reject(new Error(err));
-        }
-
-        return deferred.promise;
-    }
-
-    /**
-     * 自增id 暂时弃用
-     * @param  collection 类名
-     */
-    /**
-     getNextSequence: function (collection) {
-        var deferred = Q.defer();
-        this.findAndModify({
-            query: { _id: name },
-            update: { $inc: { seq: 1 } },
-            new: true
-        }).then(function (id) {
-            deferred.resolve(id);
-        }).catch(function (err) {
-            deferred.reject(new Error(err));
         });
-        return deferred.promise;
     },
-     */
+
+    group: function(collection, keys, condition, initial, reduce) {
+        return new Promise(function(resolve, reject) {
+            this._db.collection(collection).group(keys, condition, initial, reduce, function(err, data) {
+                if (err) reject(err);
+                resolve(data);
+            });
+        });
+    },
 
     /**
      * 默认查询加上 isDeleted: false
