@@ -41,15 +41,20 @@ var MongoDbDao = {
         }, {
             safe: true
         }));
-        me._db.open(function(err, db) {
-            if (err) {
-                console.log('====== mongodb - err ======', err);
-            } else {
-                me._db = db;
-                if (callback) {
-                    callback();
+        return new Promise(function(resolve, reject) {
+            me._db.open(function(err, db) {
+                if (err) {
+                    console.log('====== mongodb - err ======', err);
+                    reject(err);
+                } else {
+                    me._db = db;
+                    if (callback) {
+                        callback();
+                    }
+                    resolve(me);
                 }
-            }
+            });
+
         });
         // }
     },
@@ -64,6 +69,7 @@ var MongoDbDao = {
         } else {
             data['createTime'] = currentTime;
         }
+
         return new Promise(function(resolve, reject) {
             this._db.collection(collection).insert(data, {
                 w: 1
@@ -71,7 +77,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas.ops[0]);
             });
-        });
+        }.bind(this));
     },
 
     query: function(collection, selector, sort) {
@@ -91,7 +97,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     queryAdv: function(collection, selector, projection, sort) {
@@ -101,7 +107,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     findOne: function(collection, selector) {
@@ -115,7 +121,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     findBySort: function(collection, selector, sort, limit) {
@@ -124,7 +130,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     pagingQuery: function(collection, selector, sort, start, limit) {
@@ -137,7 +143,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     /**
@@ -150,18 +156,20 @@ var MongoDbDao = {
     findPagingData: function(collection, selector, pageRequest) {
         var me = this;
         me.addDefaultCondition(selector);
-        return me.getCount(collection, selector).then(function(count) {
-            var start = parseInt(pageRequest.start);
-            var limit = parseInt(pageRequest.limit);
-            return me.pagingQuery(collection, selector, pageRequest.sort, start, limit);
-        }).then(function(data) {
-            Promise.resolve({
-                total: count,
-                records: data
+        return new Promise(function(resolve, reject) {
+            me.getCount(collection, selector).then(function(count) {
+                var start = parseInt(pageRequest.start);
+                var limit = parseInt(pageRequest.limit);
+                return me.pagingQuery(collection, selector, pageRequest.sort, start, limit);
+            }).then(function(data) {
+                resolve({
+                    total: data.length,
+                    records: data
+                });
+            }).catch(function(err) {
+                reject(new Error(err));
             });
-        }).catch(function(err) {
-            Promise.reject(new Error(err));
-        });
+        }.bind(this));
     },
 
     getCount: function(collection, selector) {
@@ -170,7 +178,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(count);
             });
-        });
+        }.bind(this));
     },
 
     update: function(collection, selector, newData) {
@@ -191,7 +199,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     updateAdv: function(collection, selector, updateObj) {
@@ -216,7 +224,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(data);
             });
-        });
+        }.bind(this));
     },
 
     updateBatch: function(collection, selector, newData) {
@@ -233,7 +241,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(datas);
             });
-        });
+        }.bind(this));
     },
 
     remove: function(collection, selector) {
@@ -249,7 +257,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(data);
             });
-        });
+        }.bind(this));
 
     },
 
@@ -278,7 +286,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(data);
             });
-        });
+        }.bind(this));
     },
 
     /**
@@ -298,7 +306,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(data);
             });
-        });
+        }.bind(this));
     },
 
     distinct: function(collection, field) {
@@ -307,7 +315,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(data);
             });
-        });
+        }.bind(this));
     },
 
     group: function(collection, keys, condition, initial, reduce) {
@@ -316,7 +324,7 @@ var MongoDbDao = {
                 if (err) reject(err);
                 resolve(data);
             });
-        });
+        }.bind(this));
     },
 
     /**
