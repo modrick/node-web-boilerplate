@@ -5,16 +5,16 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 global.logger = require('./server/log/logFactory').getLogger();
-var http = require('http');
 var app = express();
-var wechat = require('wechat');
 // 微信开发需要开启
+// var wechat = require('wechat');
 // var weixinService = require('./server/service/weixinService');
 var constants = require('./server/helpers/constants');
 var authority = require('./server/filter/authority');
 var domain=require('domain');
 var exception=require('./server/helpers/exception')
-app.use(express.static(__dirname + '/public')); //方便开发，暂时引入
+//静态资源拦截器，指定静态资源目录
+app.use(express.static(__dirname + '/public')); 
 // App 全局配置
 app.use(cookieParser());
 //权限拦截

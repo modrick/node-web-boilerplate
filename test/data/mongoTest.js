@@ -1,6 +1,3 @@
-/**
- * Created by tangnian on 15/11/10.
- */
 var request = require('request');
 var assert = require('assert');
 var colors = require('colors');

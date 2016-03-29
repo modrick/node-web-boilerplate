@@ -1,6 +1,3 @@
-/**
- * Created by tangnian on 15/11/10.
- */
 
 var mongoTest = require('./data/mongoTest');
 var dao = require('../server/storage/mongodbDao');
