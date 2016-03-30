@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node index",
-    "test":"mocha ./test/"
+    "test": "mocha ./test/"
   },
   "engineStrict": true,
   "dependencies": {
@@ -28,17 +28,19 @@
     "redis": "^0.12.1",
     "request": "^2.58.0",
     "lodash": "^4.6.1",
-    "wechat":"2.0.2",
-    "wechat-pay":"0.2.2",
-    "node-xml":"1.0.2",
-    "georedis":"3.0.2",
-    "crypto-js":"3.1.5",
-    "cron":"1.1.0"
+    "wechat": "2.0.2",
+    "wechat-pay": "0.2.2",
+    "node-xml": "1.0.2",
+    "georedis": "3.0.2",
+    "crypto-js": "3.1.5",
+    "cron": "1.1.0",
+    "power-express": "0.1.2"
   },
   "devDependencies": {
-    "errorhandler":"1.4.2",
-    "node-notifier":"4.3.1",
-    "mocha":"2.3.3",
-    "colors":"1.1.2"
+    "errorhandler": "1.4.2",
+    "node-notifier": "4.3.1",
+    "mocha": "2.3.3",
+    "colors": "1.1.2",
+    "sprintf-js": "1.0.3"
   }
 }

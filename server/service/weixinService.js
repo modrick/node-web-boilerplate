@@ -22,7 +22,6 @@ var initConfig = {
         // pfx: fs.readFileSync(constants.WeixinConstants.PFX)
 };
 var payment = new Payment(initConfig);
-var discountService = require('./discountService');
 
 // 微信接口类
 class WeixinService {
@@ -406,7 +405,6 @@ class WeixinService {
                                 // var nickname = user.nickname;
                                 // var phone = user.phone;
                                 //正式环境取消送优惠劵
-                                // return discountService.subscribeSendDiscount(openId, phone, nickname);
                                 return Q(false)
                             })
                         } else if (data.length > 0) {

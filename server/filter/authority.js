@@ -4,8 +4,6 @@
  * sourceType 0: mobile browser; 1:mobile APP
  */
 var redisDao = require('../storage/redisDao');
-var underscore = require('underscore');
-var __string = require('underscore.string');
 var util = require('util');
 var logger = require('../log/logFactory').getLogger();
 //映射模型
@@ -25,8 +23,6 @@ var filter = {
         res.append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
         res.append('Access-Control-Allow-Credentials', 'true');
         res.append("Access-Control-Allow-Methods", "*");
-        res.append("X-Powered-By", "3.2.1");
-        res.append("Content-Type", "application/json;charset=utf-8");
         next();
     },
 
