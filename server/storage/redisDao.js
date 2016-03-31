@@ -3,7 +3,6 @@
  */
 var config = require('../../config');
 var redis = require("redis");
-var Q = require('q');
 var client = redis.createClient(config.redisport, config.redishost, {
     auth_pass: ''
 });
@@ -16,205 +15,179 @@ var redisClient = {
     },
 
     expire: function(key, seconds) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis expire meet a error of key is underfined');
-        } else {
-            client.expire(key, seconds, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis expire meet a error of key is underfined'));
+            } else {
+                client.expire(key, seconds, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     hgetall: function(key) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hgetall meet a error of key is underfined');
-        } else {
-            client.hgetall(key, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis hgetall meet a error of key is underfined'));
+            } else {
+                client.hgetall(key, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     get: function(key) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hget meet a error of key is undefined');
-        } else {
-            client.get(key, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis get meet a error of key is underfined'));
+            } else {
+                client.get(key, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     set: function(key, data) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hget meet a error of key is undefined');
-        } else {
-            client.set(key, data, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis set meet a error of key is underfined'));
+            } else {
+                client.set(key, data, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     hget: function(key, field) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hget meet a error of key is undefined');
-        } else {
-            client.hget(key, field, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis hget meet a error of key is underfined'));
+            } else {
+                client.hget(key, field, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     hset: function(key, attribute, data) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hset meet a error of key is undefined');
-        } else {
-            client.hset(key, attribute, data, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis hset meet a error of key is underfined'));
+            } else {
+                client.hset(key, attribute, data, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     hdel: function(key, field) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hdel meet a error of key is undefined');
-        } else {
-            client.hdel(key, field, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis hdel meet a error of key is underfined'));
+            } else {
+                client.hdel(key, field, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     del: function(key) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis del meet a error of key is undefined');
-        } else {
-            client.del(key, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis del meet a error of key is underfined'));
+            } else {
+                client.del(key, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     keys: function(pattern) {
-        var deferred = Q.defer();
-        if (typeof(pattern) == 'undefined') {
-            deferred.reject('redis keys meet a error of key is undefined');
-        } else {
-            client.keys(pattern, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
-    },
-
-    get: function(key) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hget meet a error of key is undefined');
-        } else {
-            client.get(key, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
-    },
-
-    set: function(key, data) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis hget meet a error of key is undefined');
-        } else {
-            client.set(key, data, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(pattern) == 'undefined') {
+                reject(new Error('redis keys meet a error of key is underfined'));
+            } else {
+                client.keys(pattern, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     //////////////////////////////////////////////////////// ZSET /////////////////////////////////////////////////////////////
     zadd: function(key, score, member) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis zadd meet a error of key is undefined');
-        } else {
-            client.zadd(key, score, member, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis zadd meet a error of key is underfined'));
+            } else {
+                client.zadd(key, score, member, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     zrem: function(key, member) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis zrem meet a error of key is undefined');
-        } else {
-            client.zrem(key, member, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis zrem meet a error of key is underfined'));
+            } else {
+                client.zrem(key, member, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     /**
      * Get the number of members in a sorted set
      */
     zcard: function(key) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis zcard meet a error of key is undefined');
-        } else {
-            client.zcard(key, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis zcard meet a error of key is underfined'));
+            } else {
+                client.zcard(key, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     /**
      * Return a range of members in a sorted set, by index
      */
     zrange: function(key, start, stop) {
-        var deferred = Q.defer();
-        if (typeof(key) == 'undefined') {
-            deferred.reject('redis zrange meet a error of key is undefined');
-        } else {
-            client.zrange(key, start, stop, function(err, cacheData) {
-                if (err) deferred.reject(new Error(err));
-                deferred.resolve(cacheData);
-            });
-        }
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            if (typeof(key) == 'undefined') {
+                reject(new Error('redis zrange meet a error of key is underfined'));
+            } else {
+                client.zrange(key, start, stop, function(err, cacheData) {
+                    if (err) reject(new Error(err));
+                    resolve(cacheData);
+                });
+            }
+        });
     },
 
     // ######################## GEO ########################
@@ -226,12 +199,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     addLocation: function(name, location) {
-        var deferred = Q.defer();
-        geo.addLocation(name, location, function(err, reply) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(reply);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.addLocation(name, location, function(err, reply) {
+                if (err) reject(err);
+                else resolve(reply);
+            })
+        });
     },
 
     /**
@@ -247,12 +220,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     addLocations: function(list) {
-        var deferred = Q.defer();
-        geo.addLocations(list, function(err, reply) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(reply);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.addLocations(list, function(err, reply) {
+                if (err) reject(err);
+                else resolve(reply);
+            })
+        });
     },
 
     /**
@@ -261,12 +234,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     location: function(name) {
-        var deferred = Q.defer();
-        geo.location(name, function(err, location) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(location);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.location(name, function(err, location) {
+                if (err) reject(err);
+                else resolve(location);
+            })
+        });
     },
 
     /**
@@ -276,12 +249,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     locations: function(list) {
-        var deferred = Q.defer();
-        geo.location(list, function(err, locations) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(locations);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.location(list, function(err, locations) {
+                if (err) reject(err);
+                else resolve(locations);
+            })
+        });
     },
 
     /**
@@ -301,12 +274,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     nearbyLocation: function(location, unit, options) {
-        var deferred = Q.defer();
-        geo.nearby(location, unit, options, function(err, locations) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(locations);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.nearby(location, unit, options, function(err, locations) {
+                if (err) reject(err);
+                else resolve(locations);
+            })
+        });
     },
 
     /**
@@ -326,12 +299,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     nearbyName: function(name, unit, options) {
-        var deferred = Q.defer();
-        geo.nearby(name, unit, options, function(err, locations) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(locations);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.nearby(name, unit, options, function(err, locations) {
+                if (err) reject(err);
+                else resolve(locations);
+            })
+        });
     },
 
     /**
@@ -340,12 +313,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     removeLocation: function(name) {
-        var deferred = Q.defer();
-        geo.removeLocation(name, function(err, reply) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(reply);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.removeLocation(name, function(err, reply) {
+                if (err) reject(err);
+                else resolve(reply);
+            })
+        });
     },
 
     /**
@@ -354,12 +327,12 @@ var redisClient = {
      * @returns {*|promise}
      */
     removeLocations: function(list) {
-        var deferred = Q.defer();
-        geo.removeLocations(list, function(err, reply) {
-            if (err) deferred.reject(err);
-            else deferred.resolve(reply);
-        })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.removeLocations(list, function(err, reply) {
+                if (err) reject(err);
+                else resolve(reply);
+            })
+        });
     },
 
     /**
@@ -379,13 +352,13 @@ var redisClient = {
      * @returns {*|promise}
      */
     distance: function(locationA, locationB, options) {
-        var deferred = Q.defer();
-        geo.distance(locationA, locationB, options,
-            function(err, reply) {
-                if (err) deferred.reject(err);
-                else deferred.resolve(reply);
-            })
-        return deferred.promise;
+        return new Promise(function(resolve, reject) {
+            geo.distance(locationA, locationB, options,
+                function(err, reply) {
+                    if (err) reject(err);
+                    else resolve(reply);
+                })
+        });
     }
 
 
