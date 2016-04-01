@@ -11,7 +11,7 @@ var ObjectID = require('mongodb').ObjectID;
 var mongoClient = require('mongodb').MongoClient;
 //正式环境
 var url = '';
-if (process.NODE_ENV == 'production') {
+if (process.env.NODE_ENV == 'production') {
     var sprintf = require("sprintf-js").sprintf;
     url = sprintf("mongodb://%s:%d,%s:%d/%s?replicaSet=%s", config.dbhost1, config.dbport1, config.dbhost2, config.dbport2, config.dbname, config.replSetName);
 }
