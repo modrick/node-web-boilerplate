@@ -1,28 +1,21 @@
 'use strict'
 var BaseService = require('../service/baseService');
-var Q = require('q');
 var constants = require('../helpers/constants');
-var request = require('request');
+var Promise = require('bluebird');
+var request = Promise.promisifyAll(require('request'));
 
 class SimSimiService extends BaseService {
 
-	send(text) {
+	* send(text) {
 		var deferred = Q.defer();
-		request.get({
-			url: 'http://sandbox.api.simsimi.com/request.p?key=' + constants.SimSimi.KEY + '&lc=ch&ft=1.0&text=' + encodeURI(text),
-			formData: {}
-		}, function(err, res, body) {
-			var json=JSON.parse(res.body);
-			if (!err && json.result == 100) {
-				var response = json.response;
-				deferred.resolve(response);
-			} else {
-				deferred.reject(err);
-			}
-		});
-		return deferred.promise;
+		var response = yield request.getAsync('http://sandbox.api.simsimi.com/request.p?key=' + constants.SimSimi.KEY + '&lc=ch&ft=1.0&text=' + encodeURI(text));
+		var body = JSON.parse(response.body);
+		if (body.result == 100) {
+			return response.response;
+		} else {
+			return '';
+		}
 	}
-
 
 }
 

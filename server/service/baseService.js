@@ -21,7 +21,6 @@ class BaseService {
      */
     save(newData) {
         return mongodbDao.save(this.TABLE_NAME, newData);
-
     }
 
     /*

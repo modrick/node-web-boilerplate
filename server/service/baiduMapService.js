@@ -1,8 +1,9 @@
 'use strict'
-var Q = require('q');
 var request = require('request');
 var querystring = require('querystring');
 var constants = require('../helpers/constants');
+var Promise = require('bluebird');
+var request = Promise.promisifyAll(require('request'));
 /**
  * 百度地图服务
  */
@@ -14,20 +15,12 @@ class BaiduMapService {
      * @param {string} lat 纬度
      * @returns {*|promise}
      */
-    getCity(lat, lng) {
-        var defered = Q.defer();
-        request('http://api.map.baidu.com/geocoder/v2/?ak=' + constants.BaiduConstants.MAPAK + '&callback=renderReverse&location=' + lat + ',' + lng + '&output=json&pois=1', function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                response.setEncoding('utf8');
-                res.setHeader("Content-Type", "text/html");
-                if (!error) {
-                    defered.resolve(body);
-                } else {
-                    defered.reject(error);
-                }
-            }
-        });
-        return defered.promise;
+    * getCity(lat, lng) {
+        let response = yield request.getAsync('http://api.map.baidu.com/geocoder/v2/?ak=' + constants.BaiduConstants.MAPAK + '&callback=renderReverse&location=' + lat + ',' + lng + '&output=json&pois=1');
+        if (response.statusCode == 200) {
+            response.setEncoding('utf8');
+            return response.body;
+        }
     }
 
     /**
@@ -37,9 +30,9 @@ class BaiduMapService {
      * @param {string} latitude 纬度
      * @returns {*|promise}
      */
-    getAutoCompleteAddresses(keyword, longitude, latitude) {
-        var deferred = Q.defer();
-        var queryParam = {
+    * getAutoCompleteAddresses(keyword, longitude, latitude) {
+        let deferred = Q.defer();
+        let queryParam = {
             query: keyword,
             region: '上海',
             output: 'json',
@@ -48,16 +41,11 @@ class BaiduMapService {
         if (longitude && latitude) {
             queryParam.location = latitude + ',' + longitude;
         }
-        var url = 'http://api.map.baidu.com/place/v2/suggestion?' + querystring.stringify(queryParam);
-        request(url, function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var data = JSON.parse(body);
-                deferred.resolve(data.result);
-            } else {
-                deferred.reject(new Error(err));
-            }
-        });
-        return deferred.promise;
+        let url = 'http://api.map.baidu.com/place/v2/suggestion?' + querystring.stringify(queryParam);
+        let response = yield request.getAsync(url)
+        if (response.statusCode == 200) {
+            return JSON.parse(response.body).result;
+        }
     }
 
     /**
@@ -84,7 +72,7 @@ class BaiduMapService {
      * 根据详细的地址获取对应的经纬度
      * @param {string} address 详细的地址
      */
-    getLngLatByAddress(specificAddress) {
+    * getLngLatByAddress(specificAddress) {
         var deferred = Q.defer();
         var queryParam = {
             address: specificAddress,
@@ -93,22 +81,15 @@ class BaiduMapService {
             ak: constants.BaiduConstants.MAPAK
         };
         var url = 'http://api.map.baidu.com/geocoder/v2/?' + querystring.stringify(queryParam);
-        request(url, function(error, response, body) {
-            if (!error) {
-                var data = JSON.parse(body);
-                deferred.resolve(data);
-            } else {
-                deferred.reject(new Error(err));
-            }
-        });
-        return deferred.promise;
+        var response = yield request.getAsync(url)
+        return JSON.parse(response.body);
     }
 
     /**
      * 根据对应的经纬度获取详细的地址
      * @param {string} address 详细的地址
      */
-    getAddressByLngLat(longitude, latitude) {
+    * getAddressByLngLat(longitude, latitude) {
         var deferred = Q.defer();
         var queryParam = {
             location: latitude + ',' + longitude,
@@ -117,15 +98,8 @@ class BaiduMapService {
             pois: 1
         };
         var url = 'http://api.map.baidu.com/geocoder/v2/?' + querystring.stringify(queryParam);
-        request(url, function(error, response, body) {
-            if (!error) {
-                var data = JSON.parse(body);
-                deferred.resolve(data);
-            } else {
-                deferred.reject(new Error(err));
-            }
-        });
-        return deferred.promise;
+        var response = request.getAsync(url)
+        return JSON.parse(response.body);
     }
 
 };
