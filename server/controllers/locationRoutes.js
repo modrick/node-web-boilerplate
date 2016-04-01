@@ -15,7 +15,7 @@ module.exports = function(app) {
 		let place = req.query.place;
 		let longitude = req.query.longitude;
 		let latitude = req.query.latitude;
-		let data = yield baiduMapService.getAutoCompleteAddresses(place, longitude, latitude);
+		let data = yield* baiduMapService.getAutoCompleteAddresses(place, longitude, latitude);
 		res.json({
 			code: 100,
 			data: data
@@ -25,7 +25,7 @@ module.exports = function(app) {
 	//根据地址获取坐标
 	app.get('/getLngLatByAddress', function*(req, res) {
 		let place = req.query.place;
-		let data = yield baiduMapService.getLngLatByAddress(place);
+		let data = yield* baiduMapService.getLngLatByAddress(place);
 		res.json({
 			code: 100,
 			data: data
@@ -36,7 +36,7 @@ module.exports = function(app) {
 	app.get('/getAddressByLngLat', function*(req, res) {
 		let longitude = req.query.longitude;
 		let latitude = req.query.latitude;
-		let data = yield baiduMapService.getAddressByLngLat(longitude, latitude);
+		let data = yield* baiduMapService.getAddressByLngLat(longitude, latitude);
 		res.json({
 			code: 100,
 			data: data

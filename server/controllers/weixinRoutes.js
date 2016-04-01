@@ -24,7 +24,7 @@ module.exports = function(app) {
 		let code = req.query.code;
 		if (code) {
 			//正式环境
-			let data = yield weixinService.getOpenIdByCode(code);
+			let data = yield* weixinService.getOpenIdByCode(code);
 			res.cookie('userid', data.openId, {
 				maxAge: 1800000
 			});
@@ -45,7 +45,7 @@ module.exports = function(app) {
 
 	app.get('/weixinGetUserInfo', function*(req, res) {
 		let code = req.query.code;
-		let data = yield weixinService.weixinGetUserInfo(code);
+		let data = yield* weixinService.weixinGetUserInfo(code);
 		let openid = data.openid;
 		res.json({
 			code: 100,
