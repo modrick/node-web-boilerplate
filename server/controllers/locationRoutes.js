@@ -1,6 +1,7 @@
 /**
  * 微信路由
  */
+'use strict'
 var constants = require('../helpers/constants');
 var weixinService = require('../service/weixinService');
 var tecentMapService = require('../service/tecentMapService');

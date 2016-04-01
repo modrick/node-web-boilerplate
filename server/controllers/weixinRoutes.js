@@ -1,7 +1,7 @@
 /**
  * 微信路由
- * Created by tangnian on 14/11/10.
  */
+'use strict'
 var constants = require('../helpers/constants');
 var weixinService = require('../service/weixinService');
 var fs = require('fs');

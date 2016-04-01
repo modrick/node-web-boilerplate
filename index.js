@@ -14,7 +14,7 @@ var authority = require('./server/filter/authority');
 var domain = require('domain');
 var exception = require('./server/helpers/exception')
 	//静态资源拦截器，指定静态资源目录
-app.use(express.static(__dirname + '/public'));
+// app.use(express.static(__dirname + '/public'));
 // App 全局配置
 app.use(cookieParser());
 //权限拦截

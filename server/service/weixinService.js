@@ -20,6 +20,7 @@ var initConfig = {
     notifyUrl: constants.WeixinConstants.NOTIFYURL
         // pfx: fs.readFileSync(constants.WeixinConstants.PFX)
 };
+var Payment = require('wechat-pay').Payment;
 var payment = new Payment(initConfig);
 
 // 微信接口类
