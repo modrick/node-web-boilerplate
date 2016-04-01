@@ -7,7 +7,6 @@ var weixinService = require('../service/weixinService');
 var fs = require('fs');
 var mongodaDao = require('../storage/mongodbDao');
 var commonUtil = require('../helpers/commonUtil');
-var Q = require('q');
 var middleware = require('wechat-pay').middleware;
 var initConfig = {
 	partnerKey: constants.WeixinConstants.PARTNERKEY,

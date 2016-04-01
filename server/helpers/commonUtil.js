@@ -5,11 +5,8 @@
 var logger = require('../log/logFactory').getLogger();
 var config = require('../../config');
 var redisDao = require('../storage/redisDao');
-var Q = require('q');
 
 var utils = {
-
-    
 
     //JS中继承的实现--start
     _isObject: function(o) {

@@ -4,7 +4,6 @@
 'use strict'
 var constants = require('../helpers/constants');
 var weixinService = require('../service/weixinService');
-var tecentMapService = require('../service/tecentMapService');
 var baiduMapService = require('../service/baiduMapService');
 var commonUtil = require('../helpers/commonUtil');
 var mongodaDao = require('../storage/mongodbDao');

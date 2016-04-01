@@ -7,7 +7,6 @@ var request = Promise.promisifyAll(require('request'));
 class SimSimiService extends BaseService {
 
 	* send(text) {
-		var deferred = Q.defer();
 		var response = yield request.getAsync('http://sandbox.api.simsimi.com/request.p?key=' + constants.SimSimi.KEY + '&lc=ch&ft=1.0&text=' + encodeURI(text));
 		var body = JSON.parse(response.body);
 		if (body.result == 100) {

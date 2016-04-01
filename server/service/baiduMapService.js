@@ -31,7 +31,6 @@ class BaiduMapService {
      * @returns {*|promise}
      */
     * getAutoCompleteAddresses(keyword, longitude, latitude) {
-        let deferred = Q.defer();
         let queryParam = {
             query: keyword,
             region: '上海',
@@ -73,7 +72,6 @@ class BaiduMapService {
      * @param {string} address 详细的地址
      */
     * getLngLatByAddress(specificAddress) {
-        var deferred = Q.defer();
         var queryParam = {
             address: specificAddress,
             city: '上海市',
@@ -90,7 +88,6 @@ class BaiduMapService {
      * @param {string} address 详细的地址
      */
     * getAddressByLngLat(longitude, latitude) {
-        var deferred = Q.defer();
         var queryParam = {
             location: latitude + ',' + longitude,
             output: 'json',
