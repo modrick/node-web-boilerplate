@@ -160,7 +160,7 @@ class WeixinService {
      * 根据code进行网页授权获取用户openid
      * @param code
      */
-    getOpenIdByCode(code) {
+    * getOpenIdByCode(code) {
         var appid = constants.WeixinConstants.APPID;
         var secret = constants.WeixinConstants.APPSECRET;
         var reponse = yield request.getAyscn('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appid + '&secret=' + secret + '&code=' + code + '&grant_type=authorization_code');
@@ -185,7 +185,7 @@ class WeixinService {
      * @param opednId
      * @returns {promise.promise|Function|jQuery.promise|*|r.promise|promise}
      */
-    getWechatUserInfo(openId) {
+    * getWechatUserInfo(openId) {
         var access_token = yield * this.getAccessToken();
         var response = yield request.get('https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN')
         if (response.statusCode == 200) {
@@ -199,7 +199,7 @@ class WeixinService {
     }
 
     //获取微信用户信息
-    weixinGetUserInfo(code) {
+    * weixinGetUserInfo(code) {
         var appid = constants.WeixinConstants.APPID;
         var secret = constants.WeixinConstants.APPSECRET;
         var response = yield request.get('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appid + '&secret=' + secret + '&code=' + code + '&grant_type=authorization_code');
@@ -224,51 +224,12 @@ class WeixinService {
     }
 
     //微信关注
-    payAttentionTo(req, res, next) {
+    * payAttentionTo(req, res, next) {
         // 微信输入信息都在req.
         var message = req.weixin;
-        var openId = message.FromUserName;
-        var pathname = url.parse(req.url).pathname; //pathname => select
-        var arg = url.parse(req.url).query; //arg => name=a&id=5
         //关注事件
         if ((message.MsgType == 'event') && (message.Event == 'subscribe')) {
-            var replyStr = "欢迎来到xx";
-            //关注时，获取用户信息
-            var access_token = yield * this.getAccessToken();
-            var response = yield request.getAsync('https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN')
-            if (response.statusCode == 200) {
-                var wechatUserInfo = JSON.parse(response.body);
-                var userInfo = {
-                    subscribe: wechatUserInfo.subscribe,
-                    openId: wechatUserInfo.openid,
-                    nickname: wechatUserInfo.nickname,
-                    sex: wechatUserInfo.sex,
-                    wechatCity: wechatUserInfo.city,
-                    country: wechatUserInfo.country,
-                    province: wechatUserInfo.province,
-                    language: wechatUserInfo.language,
-                    headimgurl: wechatUserInfo.headimgurl,
-                    subscribe_time: wechatUserInfo.subscribe_time,
-                    remark: wechatUserInfo.remark,
-                    groupid: wechatUserInfo.groupid,
-                    usertype: '0'
-                }
-                var data = yield mongodaDao.query('User', {
-                    openId: openId
-                });
-                if (data.length == 0) {
-                    var user = yield mongodaDao.save('User', userInfo)
-                    logger.info("微信关注:openid为" + wechatUserInfo.openid + "关注成功");
-                } else if (data.length > 0) {
-                    var user = yield mongodaDao.update('User', {
-                        openId: wechatUserInfo.openid
-                    }, {
-                        subscribe: 1
-                    })
-                    logger.info("微信关注:openid为" + openId + "再次关注成功");
-                }
-            }
-            // res.reply(replyStr);
+            yield * this.subscribeUser(message);
             res.reply([{
                 title: '',
                 description: '',
@@ -277,30 +238,79 @@ class WeixinService {
             }]);
             //取消关注事件
         } else if ((message.MsgType == 'event') && (message.Event == 'unsubscribe')) {
-            var data = yield mongodaDao.query('User', {
-                openId: openId
-            });
-            if (data.length === 0) {
-                logger.info('openId为：' + openId + '的用户取消关注时，数据库没有该用户的数据');
-                res.reply('ok')
-            } else if (data.length === 1) {
-                var unsub = new Date();
-                unsub.setHours(unsub.getHours() + 8);
-                var user = yield mongodaDao.update('User', {
-                    openId: openId
-                }, {
-                    subscribe: 0,
-                    unsubscribe_time: unsub
-                });
-                logger.info('openId为：' + openId + '的用户取消关注成功。');
-                res.reply('ok')
-            }
+            yield * this.unsubscribeUser(message);
+            res.reply('ok');
+            //公众号里面的消息回复
         } else if (message.MsgType == 'text') {
-            var input = (message.Content || '').trim();
+            yield * this.processMessage()
             res.send('success')
-
+        } else {
+            res.send('')
         }
+    }
 
+    //用户关注以后的操作
+    * subscribeUser(message) {
+        var access_token = yield * this.getAccessToken();
+        var response = yield request.getAsync('https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + message.FromUserName + '&lang=zh_CN')
+        if (response.statusCode == 200) {
+            var wechatUserInfo = JSON.parse(response.body);
+            var userInfo = {
+                subscribe: wechatUserInfo.subscribe,
+                openId: wechatUserInfo.openid,
+                nickname: wechatUserInfo.nickname,
+                sex: wechatUserInfo.sex,
+                wechatCity: wechatUserInfo.city,
+                country: wechatUserInfo.country,
+                province: wechatUserInfo.province,
+                language: wechatUserInfo.language,
+                headimgurl: wechatUserInfo.headimgurl,
+                subscribe_time: wechatUserInfo.subscribe_time,
+                remark: wechatUserInfo.remark,
+                groupid: wechatUserInfo.groupid,
+                usertype: '0'
+            }
+            var data = yield mongodaDao.query('User', {
+                openId: message.FromUserName
+            });
+            if (data.length == 0) {
+                var user = yield mongodaDao.save('User', userInfo)
+                logger.info("微信关注:openid为" + message.FromUserName + "关注成功");
+            } else if (data.length > 0) {
+                var user = yield mongodaDao.update('User', {
+                    openId: message.FromUserName
+                }, {
+                    subscribe: 1
+                })
+                logger.info("微信关注:openid为" + message.FromUserName + "再次关注成功");
+            }
+        }
+    }
+
+    //用户取消关注事件
+    * unsubscribeUser(message) {
+        var data = yield mongodaDao.query('User', {
+            openId: message.FromUserName
+        });
+        if (data.length === 0) {
+            logger.info('openId为：' + message.FromUserName + '的用户取消关注时，数据库没有该用户的数据');
+        } else if (data.length === 1) {
+            var unsub = new Date();
+            unsub.setHours(unsub.getHours() + 8);
+            var user = yield mongodaDao.update('User', {
+                openId: message.FromUserName
+            }, {
+                subscribe: 0,
+                unsubscribe_time: unsub
+            });
+            logger.info('openId为：' + message.FromUserName + '的用户取消关注成功。');
+        }
+    }
+
+    //处理用户留言
+    * processMessage(message) {
+        var input = (message.Content || '').trim();
+        return 'hello world.'
     }
 
 }
