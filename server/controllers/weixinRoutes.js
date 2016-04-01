@@ -21,23 +21,18 @@ var initConfig = {
 module.exports = function(app) {
 
 	//########## 微信菜单入口  #--start--#  #################
-	app.get('/wxIndex', function(req, res) {
-		var code = req.query.code;
+	app.get('/wxIndex', function*(req, res) {
+		let code = req.query.code;
 		if (code) {
 			//正式环境
-			weixinService.getOpenIdByCode(code).then(function(data) {
-				// res.cookie('userid',  userid, { maxAge: 1000000,domain: '.foamka.com' ,httpOnly: true});
-				// userid为openId
-				res.cookie('userid', data.openId, {
-					maxAge: 1800000
-				});
-				res.redirect('/');
-			}).catch(function(err) {
-				res.render('/#/500')
+			let data = yield weixinService.getOpenIdByCode(code);
+			res.cookie('userid', data.openId, {
+				maxAge: 1800000
 			});
+			res.redirect('/');
 		} else {
 			//开发测试
-			var userid = "old6iv5MVy2gDkugC1C0Yy3h-mLM";
+			let userid = "old6iv5MVy2gDkugC1C0Yy3h-mLM";
 			res.cookie('userid', userid, {
 				maxAge: 1800000
 			});
@@ -49,23 +44,18 @@ module.exports = function(app) {
 	//微信分享接口签名
 	app.post('/getQMData', weixinService.getQMData);
 
-	app.get('/weixinGetUserInfo', function(req, res) {
-		var code = req.query.code;
-		weixinService.weixinGetUserInfo(code).then(function(data) {
-			var openid = data.openid;
-			res.json({
-				code: 100,
-				openid: openid
-			})
-		}).catch(function(err) {
-			res.json({
-				code: 500
-			})
-		});
+	app.get('/weixinGetUserInfo', function*(req, res) {
+		let code = req.query.code;
+		let data = yield weixinService.weixinGetUserInfo(code);
+		let openid = data.openid;
+		res.json({
+			code: 100,
+			openid: openid
+		})
 	});
 
 	//微信订单创建
-	app.post('/createOrder', function(req, res) {
+	app.post('/createOrder', function*(req, res) {
 		var order = {
 			body: '吮指原味鸡 * 1',
 			attach: '{"部位":"三角"}',
@@ -75,18 +65,11 @@ module.exports = function(app) {
 			openid: 'o8udVvxVvBGQL8HTkYd6g78pnF9U',
 			trade_type: 'JSAPI'
 		};
-		weixinService.createPayment(order).then(function(payargs) {
-			res.json({
-				code: 100,
-				data: payargs
-			});
-		}).catch(function(err) {
-			logger.error(err);
-			res.json({
-				code: 100,
-				data: err
-			});
-		})
+		var payargs = yield weixinService.createPayment(order)
+		res.json({
+			code: 100,
+			data: payargs
+		});
 	});
 
 	//微信支付回调
@@ -98,7 +81,7 @@ module.exports = function(app) {
 				// TODO
 			}
 		} else {
-               //TODO
+			//TODO
 		}
 	}));
 
