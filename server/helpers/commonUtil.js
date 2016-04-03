@@ -8,44 +8,37 @@ var redisDao = require('../storage/redisDao');
 
 var utils = {
 
-    //JS中继承的实现--start
-    _isObject: function(o) {
+    /**
+     * Generator function type check.
+     *
+     * @param {*} function
+     * @return {Boolean}
+     */
+    isGenerator: function(func) {
+        return typeof func === 'function' && 'GeneratorFunction' === func.constructor.name
+    },
+
+    /**
+     * Array type check.
+     *
+     * @param {*} obj
+     * @return {Boolean}
+     */
+    isArray: function(obj) {
+        return Array.isArray(obj)
+    },
+
+    /**
+     * Object type check. Only returns true
+     * for plain JavaScript objects.
+     *
+     * @param {*} obj
+     * @return {Boolean}
+     */
+    isObject: function(o) {
         return Object.prototype.toString.call(o) === '[object Object]';
-    },
+    }
 
-    _extend: function(destination, source) {
-        var property;
-        for (property in destination) {
-            if (destination.hasOwnProperty(property)) {
-                // 若destination[property]和sourc[property]都是对象，则递归
-                if (this._isObject(destination[property]) && this._isObject(source[property])) {
-                    self(destination[property], source[property]);
-                }
-                // 若sourc[property]已存在，则跳过
-                if (source.hasOwnProperty(property)) {
-                    continue;
-                } else {
-                    source[property] = destination[property];
-                }
-            }
-        }
-    },
-
-    //继承调用方法
-    extend: function() {
-            var arr = arguments,
-                result = {},
-                i;
-            if (!arr.length) return {};
-            for (i = arr.length - 1; i >= 0; i--) {
-                if (this._isObject(arr[i])) {
-                    this._extend(arr[i], result);
-                };
-            }
-            arr[0] = result;
-            return result;
-        }
-        //JS中继承的实现--end
 
 }
 
