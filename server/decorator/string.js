@@ -7,7 +7,7 @@
 function string(target, key, descriptor) {
 	const initializer = descriptor.initializer
 	if (initializer) {
-		checkString(initializer.call(this))
+		checkString(initializer.call(this), key)
 	}
 	return {
 		descriptor.configurable,
@@ -24,15 +24,15 @@ function string(target, key, descriptor) {
 				return value
 			},
 			set(value) {
-				checkString(value)
+				checkString(value,key)
 				descriptor.value = key
 			}
 	};
 }
 
-function checkString(value) {
+function checkString(value, key) {
 	if (typeof(value) != 'string') {
-		throw new SyntaxError('@string 属性 ${key} 的值必须是字符串类型。 ');
+		throw new SyntaxError('@string 属性 ' + key + ' 的值必须是字符串类型。 ');
 	}
 }
 
