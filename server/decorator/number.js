@@ -33,7 +33,7 @@ function number(target, key, descriptor) {
 
 function checkNumber(value, key) {
 	if (typeof(value) != 'number') {
-		throw new SyntaxError('@number 属性 ' + key + ' 的值必须是字符串类型。 ');
+		throw new SyntaxError('@number 属性 ' + key + ' 的值必须是数字类型。 ');
 	}
 }
 
