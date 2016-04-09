@@ -1,6 +1,6 @@
 'use strict'
 
-var Server = require('./server/server');
+let Server = require('./server/server');
 var express = require('power-express')(require('express'));
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');

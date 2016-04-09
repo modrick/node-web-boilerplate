@@ -1,8 +1,8 @@
-
 /*
  * 类的dao方法绑定，通过该绑定让modal具备dao功能
- * 开发中...
  * 
+ * @param {} 
+ * @return {}
  */
 function Service(dao) {
     return function(classObject) {

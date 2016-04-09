@@ -5,6 +5,6 @@
  * @return {}
  */
 module.exports = function(target, key, descriptor) {
-	descriptor.writable = false;
+
 	return descriptor;
 }
