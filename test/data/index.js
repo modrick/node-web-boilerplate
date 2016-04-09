@@ -1,6 +1,9 @@
-
-var mongoTest = require('./data/mongoTest');
-var dao = require('../server/storage/mongodbDao');
+/**
+ * mongodbDao层的测试
+ *
+ */
+var mongoTest = require('./mongoTest');
+var dao = require('./../../server/storage/mongodbDao');
 var request = require('request');
 var assert = require('assert');
 
