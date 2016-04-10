@@ -4,6 +4,7 @@
  * @param {} 
  * @return {}
  */
+ 'use strict'
 function Service(dao) {
     return function(classObject) {
         classObject.prototype.query = function(selector, sort) {

@@ -4,6 +4,7 @@
  * @param {} 
  * @return {}
  */
+ 'use strict'
 function Router(url) {
 	return function(classObject) {
 
