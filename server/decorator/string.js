@@ -4,8 +4,12 @@
  * @param {} 
  * @return {}
  */
- 'use strict'
+'use strict'
+
 function string(target, key, descriptor) {
+	//通过attrs 属性可以获取到当前类中能用的属性
+	if (target.attrs) target.attrs[key] = 'string'
+	else target.attrs = Object.create(null)
 	const initializer = descriptor.initializer
 	if (initializer) {
 		checkString(initializer.call(this), key)

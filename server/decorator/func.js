@@ -1,5 +1,6 @@
 /*
- * 限制属性为function类型
+ * 限制属性为function类型，其不会被添加进attrsName中
+ * 因为该字段是函数，所以在service中无需从request中取值进行赋值
  *
  * @param {} 
  * @return {}
@@ -16,8 +17,8 @@ function func(target, key, descriptor) {
 		enumerable: descriptor.enumerable,
 		get() {
 			let value
-			// class创建的时候属性的初始化赋值， 及在没有set值之前, 其属性取值由initializer获取，
-			// 后面对属性调用过set后， 其取值从descriptor.value去获取
+				// class创建的时候属性的初始化赋值， 及在没有set值之前, 其属性取值由initializer获取，
+				// 后面对属性调用过set后， 其取值从descriptor.value去获取
 			if (initializer && !descriptor.value) {
 				value = initializer.call(this)
 			} else if (descriptor.value) {
