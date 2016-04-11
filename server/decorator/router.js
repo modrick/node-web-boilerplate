@@ -104,4 +104,14 @@ function checkTypeAndTranslateType(object, attrs) {
     })
 }
 
+/**
+ * 检查2个对象中属性是否完全一致
+ * @param {object} object 需要被检查的对象
+ * @param {object} attrs  属性名＋属性类型的对象
+ * @returns {*|promise}
+ */
+function checkSomeType(object,attrs){
+    // todo
+}
+
 module.exports = Router
