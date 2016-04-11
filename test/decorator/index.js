@@ -7,13 +7,14 @@ require("babel-register")
 let chai = require('chai')
 let expect = chai.expect
 let TestData = require('./TestData.js')
+let testData = new TestData()
 var dao = require('./../../server/storage/mongodbDao');
 
 describe('#########－定义的Decorator测试－#########', function() {
 
 	before(function(done) {
-		TestData.dbInit().then(function(data) {
-			return TestData.remove({})
+		testData.dbInit().then(function(data) {
+			return testData.remove({})
 		}).then(function(data) {
 			console.info('remove all')
 			done()
@@ -25,20 +26,20 @@ describe('#########－定义的Decorator测试－#########', function() {
 	describe('创建User对象，开始测试', function() {
 		//属性操作
 		try {
-			TestData.name = 123
+			testData.name = 123
 		} catch (e) {
 			console.info(e)
 		}
 		try {
-			TestData.age = '21'
+			testData.age = '21'
 		} catch (e) {
 			console.info(e)
 		}
-		expect(TestData.sex).to.equal('男')
-			//数据库操作
+		expect(testData.sex).to.equal('男')
+			//数据库操作的
 		describe('保存数据'.green, function() {
 			it('保存:'.yellow, function(done) {
-				return TestData.save({
+				return testData.save({
 					userId: 'admin2',
 					type: 2,
 					password: "admin123",
@@ -50,7 +51,7 @@ describe('#########－定义的Decorator测试－#########', function() {
 					console.info(JSON.stringify(data).grey);
 					expect(data.userId).to.equal('admin2')
 					done();
-				}).catch(function(err){
+				}).catch(function(err) {
 					console.info(err)
 				})
 			});

@@ -37,4 +37,4 @@ class TestData {
 
 }
 
-module.exports = new TestData()
+module.exports = TestData
