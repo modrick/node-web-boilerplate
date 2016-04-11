@@ -35,7 +35,6 @@ describe('################################## －Mongodb访问层自动化测试�
 		done();
 	});
 
-
 	describe('测试mongoDao', function() {
 		mongoTest.save(dao);
 		mongoTest.query(dao);

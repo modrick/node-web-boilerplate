@@ -9,30 +9,32 @@ let readonly = require('./../../server/decorator/readonly')
 let router = require('./../../server/decorator/router')
 let service = require('./../../server/decorator/service')
 let string = require('./../../server/decorator/string')
+var dao = require('./../../server/storage/mongodbDao')
 
-class User {
+@service(dao)
+class TestData {
 
     @string
-	name;
+	name
 
     @readonly
-	sex='男';
+	sex='男'
 
     @number
-	age;
+	age
 
     @string
-	address;
+	address
 
     @string
-	work;
+	work
 
     @number
-	weight;
+	weight
 
     @number
-	height;
+	height
 
 }
 
-module.exports = new User()
+module.exports = new TestData()
