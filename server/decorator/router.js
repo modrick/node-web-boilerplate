@@ -8,20 +8,22 @@
 
 function Router(url) {
     return function(classObject) {
+
         classObject.prototype.initRestFull = function(app) {
             if (!url) url = ''
             let self = this
             let className = classObject.name.toLowerCase()
 
             //获取指定对象
-            app.get(url + '/classes/' + className + '/:id', function*(req, res) {
+            app.get(url + '/classes/' + className + '/:id', function(req, res) {
                 let id = req.params.id
-                let data = yield * self.findOne(id)
-                returnJson(res, data)
+                self.findOne(id).then(function(data) {
+                    returnJson(res, data)
+                })
             })
 
             //获取对象
-            app.get(url + '/classes/' + className, function*(req, res) {
+            app.get(url + '/classes/' + className, function(req, res) {
                 let selector;
                 if (req.query.selector) {
                     selector = JSON.parse(req.query.selector)
@@ -37,30 +39,34 @@ function Router(url) {
                 if (!limit) {
                     limit = 0
                 }
-                let data = yield * self.findPagingData(selector, start, limit, sort)
-                returnJson(res, data)
+                self.findPagingData(selector, start, limit, sort).then(function(data) {
+                    returnJson(res, data)
+                })
             })
 
             //增加对象
-            app.post(url + '/classes/' + className, function*(req, res) {
+            app.post(url + '/classes/' + className, function(req, res) {
                 let object = req.body
-                let data = yield * self.save(object)
-                returnJson(res, data)
+                self.save(object).then(function(data) {
+                    returnJson(res, data)
+                })
             })
 
             //更新指定对象
-            app.put(url + '/classes/' + className + '/:id', function*(req, res) {
+            app.put(url + '/classes/' + className + '/:id', function(req, res) {
                 let id = req.params.id
                 let object = req.body
-                let data = yield * self.update(id, object)
-                returnJson(res, data)
+                self.update(id, object).then(function(data) {
+                    returnJson(res, data)
+                })
             })
 
             //删除指定对象
-            app.delete(url + '/classes/' + className + '/:id', function*(req, res) {
+            app.delete(url + '/classes/' + className + '/:id', function(req, res) {
                 let id = req.params.id
-                let data = yield * self.remove(id)
-                returnJson(res, data)
+                self.remove(id).then(function(data) {
+                    returnJson(res, data)
+                })
             })
         }
     }
