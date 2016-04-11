@@ -37,6 +37,7 @@ app.addErrorHandle(function(err, req, res) {
 //微信开发需要开启
 // weixinService.getAccess_token(); //开启微信获取token定时任务
 // app.use('/weixin', wechat(constants.WeixinConstants.TOKEN, weixinService.payAttentionTo));
+require('./server/model/index')(app)
 //注入URL
 require('./server/controllers/routes')(app);
 
