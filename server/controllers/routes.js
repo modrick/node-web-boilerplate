@@ -5,8 +5,10 @@
 
   module.exports = function(app) {
   	//微信
-  	weixinRoutes(app);
-  	//TODO
-  	locationRoutes(app);
+  	weixinRoutes(app)
+  		//TODO
+  	locationRoutes(app)
+  		//用户权限验证
+  	userAdminRoutes(app)
 
   };

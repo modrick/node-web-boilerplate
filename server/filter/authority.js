@@ -1,85 +1,55 @@
-/**
- * Created by tangnian on 14/11/19.
- * terminalType 0: PC; 1: mobile
- * sourceType 0: mobile browser; 1:mobile APP
- */
-var redisDao = require('../storage/redisDao');
-var util = require('util');
-var logger = require('../log/logFactory').getLogger();
-//映射模型
-var cmsurls = new Map();
-//哪些url不需要验证
-// cmsurls.set('/cms/cmsLogin', true);
-// cmsurls.set('/cms/cmsLogout', true);
-
-var terminal = ['Macintosh', 'Windows', 'iPhone', 'Linux'];
-var source = 'Html5Plus/1.0';
+var redisDao = require('../storage/redisDao')
+var logger = require('../log/logFactory').getLogger()
+var jwt = require('jsonwebtoken')
+    //不需要验证的路由
+var OKURL = Object.create(null)
+OKURL['/auth/gettoken'] = true
 
 var filter = {
 
-     //允许跨域请求设置
-     crossDomain: function(req, res, next) {
-        res.append("Access-Control-Allow-Origin", "*");
-        res.append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        res.append('Access-Control-Allow-Credentials', 'true');
-        res.append("Access-Control-Allow-Methods", "*");
-        next();
-    },
+    //允许跨域请求设置
+    crossDomain(req, res, next) {
+            res.append("Access-Control-Allow-Origin", "*")
+            res.append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+            res.append('Access-Control-Allow-Credentials', 'true')
+            res.append("Access-Control-Allow-Methods", "*")
+            next()
+        },
 
-    //权限验证
-    check: function (req, res, next) {
-        var path = req.path;
-        //请求的地址如果不在URLS里面，则表示需要验证权限，不然就直接通过；
-        if (cmsurls.get(path)) {
-            var sessionId = req.sessionID;
-            redisDao.hgetall(sessionId).then(function (userInfo) {
-                if (!userInfo) {
-                    //返回到登录界面
-                    //res.render('/login');
-                     res.json({code:200});
+        //jwt验证
+        checkToken(req, res, next) {
+            if (OKURL[req.path]) {
+                next()
+            } else {
+                //检查post的信息或者url查询参数或者头信息
+                var token = req.query.token || (req.body && req.body.token) || req.headers['x-access-token']
+                    // 解析 token
+                if (token) {
+                    // 确认token
+                    jwt.verify(token, 'your secret', function(err, decoded) {
+                        if (err) {
+                            return res.status(403).json({
+                                code: 402,
+                                data: 'token信息错误.'
+                            })
+                        } else {
+                            // 如果没问题就把解码后的信息保存到请求中，供后面的路由使用
+                            req.apiData = decoded
+                            next()
+                        }
+                    })
                 } else {
-                    next();
+                    // 如果没有token，则返回错误
+                    return res.status(403).json({
+                        code: 404,
+                        data: '没有提供token'
+                    })
                 }
-            }).catch(function (err) {
-                logger.error('entitle validation: path', err);
-                // res.render('/500');
-                res.json({code:500});
-            });
-        } else {
-            next();
-        }
-    },
+                next()
+            }
 
-    //访问信息来源
-    getVisitInfo: function (req, res, next) {
-        var agent = req.header('user-agent'), lowerAgent = '';
-        //0:PC,1:移动
-        var terminalType = 1;
-        if (agent) {
-            for (var i = 0; i < 2; i++) {
-                if (agent.indexOf(terminal[i]) > -1) {
-                    terminalType = 0;
-                    break;
-                }
-            }
-            if (agent.indexOf(source) > -1) {
-                req.sourceType = 1;
-            } else {
-                req.sourceType = 0;
-            }
-            // 判断是否在微信中打开 START
-            lowerAgent = agent.toLowerCase();
-            if (/micromessenger/.test(lowerAgent)) {
-                req.weiXin = 1;
-            } else {
-                req.weiXin = 0;
-            }
-            // 判断是否在微信中打开 END
         }
-        req.terminalType = terminalType;
-        next();
-    }
 
 }
 
-module.exports = filter;
+module.exports = filter
