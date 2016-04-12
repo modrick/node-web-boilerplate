@@ -1,11 +1,12 @@
 'use strict'
 
 let Server = require('./server/server')
-var express = require('power-express')(require('express'))
+var express = require('express')
+var powerExpress = require('power-express')(express)
 var bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser')
 global.logger = require('./server/log/logFactory').getLogger()
-var app = express()
+var app = powerExpress()
 // 微信开发需要开启
 // var wechat = require('wechat')
 // var weixinService = require('./server/service/weixinService')
