@@ -6,6 +6,7 @@ var fs = require('fs');
 var cryptojs = require("crypto-js");
 var crypto = require("crypto");
 var xml = require("node-xml/lib/node-xml.js");
+var co = require('co');
 var Promise = require('bluebird');
 var request = Promise.promisifyAll(require('request'));
 var redisDao = require('../storage/redisDao');
@@ -89,22 +90,34 @@ class WeixinService {
         }, null, true, "Asia/Chongqing");
     }
 
-    * access_token() {
+    access_token() {
         var appid = constants.WeixinConstants.APPID;
         var secret = constants.WeixinConstants.APPSECRET;
-        let response = yield request.getAsync('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + appid + '&secret=' + secret);
-        let body = response.body;
-        if (response.statusCode == 200) {
-            var json = JSON.parse(body);
-            redisDao.set(appid + "access_token", json.access_token);
-            redisDao.expire(appid + "access_token", 7000);
-            //调用微信卡券接口，获取api_ticket
-            let ticketResponse = yield request.getAsync('https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=' + json.access_token + '&type=jsapi');
-            let body = ticketResponse.body;
-            if (ticketResponse.statusCode == 200) {
-                redisDao.hset(appid, "ticket", JSON.parse(body).ticket);
+        //console.log("调用获取access_token方法");
+        request.get({
+            url: 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + appid + '&secret=' + secret,
+            formData: {}
+        }, function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var json = JSON.parse(body);
+                logger.info('token:' + json.access_token);
+                redisDao.set(appid + "access_token", json.access_token);
+                redisDao.expire(appid + "access_token", 7000); // 默认是7200的有效期
+                //调用微信卡券接口，获取api_ticket
+                request.get({
+                    url: 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=' + json.access_token + '&type=jsapi',
+                    formData: {}
+                }, function(err, res, body) {
+                    if (!err && res.statusCode == 200) {
+                        redisDao.hset(appid, "ticket", JSON.parse(body).ticket);
+                    } else {
+                        logger.error(err);
+                    }
+                });
+            } else {
+                logger.error(error);
             }
-        }
+        });
     }
 
     //分享用的数字签名验证
@@ -164,7 +177,7 @@ class WeixinService {
     * getOpenIdByCode(code) {
         var appid = constants.WeixinConstants.APPID;
         var secret = constants.WeixinConstants.APPSECRET;
-        var reponse = yield request.getAyscn('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appid + '&secret=' + secret + '&code=' + code + '&grant_type=authorization_code');
+        var reponse = yield request.getAsync('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appid + '&secret=' + secret + '&code=' + code + '&grant_type=authorization_code');
         if (reponse.statusCode == 200) {
             var json = JSON.parse(reponse.body);
             var openId = json.openid;
@@ -188,7 +201,7 @@ class WeixinService {
      */
     * getWechatUserInfo(openId) {
         var access_token = yield * this.getAccessToken();
-        var response = yield request.get('https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN')
+        var response = yield request.getAsync('https://api.weixin.qq.com/cgi-bin/user/info?access_token=' + access_token + '&openid=' + openId + '&lang=zh_CN')
         if (response.statusCode == 200) {
             return JSON.parse(response.body);
         } else {
@@ -203,12 +216,12 @@ class WeixinService {
     * weixinGetUserInfo(code) {
         var appid = constants.WeixinConstants.APPID;
         var secret = constants.WeixinConstants.APPSECRET;
-        var response = yield request.get('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appid + '&secret=' + secret + '&code=' + code + '&grant_type=authorization_code');
+        var response = yield request.getAsync('https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appid + '&secret=' + secret + '&code=' + code + '&grant_type=authorization_code');
         if (response.statusCode == 200) {
             var json = JSON.parse(response.body);
             var access_token = json.access_token;
             var openid = json.openid;
-            var tokenResponse = yield request.get('https://api.weixin.qq.com/sns/userinfo?access_token=' + access_token + '&openid=' + openid + '&lang=zh_CN')
+            var tokenResponse = yield request.getAsync('https://api.weixin.qq.com/sns/userinfo?access_token=' + access_token + '&openid=' + openid + '&lang=zh_CN')
             if (tokenResponse.statusCode == 200) {
                 var json = JSON.parse(tokenResponse.body);
                 delete json._id;
@@ -224,30 +237,16 @@ class WeixinService {
         }
     }
 
+    
     //微信关注
-    * payAttentionTo(req, res, next) {
-        // 微信输入信息都在req.
-        var message = req.weixin;
-        //关注事件
-        if ((message.MsgType == 'event') && (message.Event == 'subscribe')) {
-            yield * this.subscribeUser(message);
-            res.reply([{
-                title: '',
-                description: '',
-                picurl: '',
-                url: ''
-            }]);
-            //取消关注事件
-        } else if ((message.MsgType == 'event') && (message.Event == 'unsubscribe')) {
-            yield * this.unsubscribeUser(message);
-            res.reply('ok');
-            //公众号里面的消息回复
-        } else if (message.MsgType == 'text') {
-            yield * this.processMessage()
-            res.send('success')
-        } else {
-            res.send('')
-        }
+    payAttentionTo(req, res, next) {
+        co(function *(){
+          try {
+              yield *payAttentionToCo(req, res, next);
+          } catch (err) {
+              console.error(err.message); // "boom" 
+          }
+        });
     }
 
     //用户关注以后的操作
@@ -316,4 +315,30 @@ class WeixinService {
 
 }
 
-module.exports = new WeixinService();
+//微信关注
+    function* payAttentionToCo(req, res, next) {
+        // 微信输入信息都在req.
+        var message = req.weixin;
+        //关注事件
+        if ((message.MsgType == 'event') && (message.Event == 'subscribe')) {
+            yield * ws.subscribeUser(message);
+            res.reply([{
+                title: '',
+                description: '',
+                picurl: '',
+                url: ''
+            }]);
+            //取消关注事件
+        } else if ((message.MsgType == 'event') && (message.Event == 'unsubscribe')) {
+            yield * ws.unsubscribeUser(message);
+            res.reply('ok');
+            //公众号里面的消息回复
+        } else if (message.MsgType == 'text') {
+            yield * this.processMessage()
+            res.send('success')
+        } else {
+            res.send('')
+        }
+    }
+var ws=new WeixinService();
+module.exports = ws
